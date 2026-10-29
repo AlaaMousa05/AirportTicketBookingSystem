@@ -1,13 +1,12 @@
-﻿
-namespace AirportTicketBooking.Models;
+﻿namespace AirportTicketBooking.Models;
 
 public class User
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; init; } = Guid.NewGuid();
 
-    public string Username { get; set; } = string.Empty;
+    public string Username { get; private set; } = string.Empty;
 
-    public string PasswordHash { get; set; } = string.Empty;
+    public string PasswordHash { get; private set; } = string.Empty;
 
-    public UserRole Role { get; set; }
+    public UserRole Role { get; private set; }
 }
