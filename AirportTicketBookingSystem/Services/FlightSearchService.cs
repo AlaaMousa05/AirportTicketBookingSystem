@@ -69,9 +69,9 @@ public class FlightSearchService
     {
         return flightClass switch
         {
-            FlightClass.Economy => flight.Pricing.Economy,
-            FlightClass.Business => flight.Pricing.Business,
-            FlightClass.FirstClass => flight.Pricing.FirstClass,
+            FlightClass.Economy => flight.Economy.Price,
+            FlightClass.Business => flight.Business.Price,
+            FlightClass.FirstClass => flight.FirstClass.Price,
             _ => 0
         };
     }

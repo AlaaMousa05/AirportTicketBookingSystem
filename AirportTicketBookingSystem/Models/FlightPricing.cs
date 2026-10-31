@@ -1,10 +1,16 @@
-﻿namespace AirportTicketBooking.Models;
-
-public class FlightPricing
+﻿public class FlightPricing
 {
     public decimal Economy { get; private set; }
-
     public decimal Business { get; private set; }
-
     public decimal FirstClass { get; private set; }
+
+    public FlightPricing(
+        decimal economy,
+        decimal business,
+        decimal firstClass)
+    {
+        Economy = economy;
+        Business = business;
+        FirstClass = firstClass;
+    }
 }

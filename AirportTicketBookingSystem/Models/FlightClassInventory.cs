@@ -8,11 +8,15 @@ public class FlightClassInventory
 
     public int TotalSeats { get; }
 
-    public int AvailableSeats { get; private set; }
+    public int BookedSeats { get; private set; }
 
-   
+    public int AvailableSeats => TotalSeats - BookedSeats;
+
     [JsonConstructor]
-    public FlightClassInventory(decimal price, int totalSeats, int availableSeats)
+    public FlightClassInventory(
+        decimal price,
+        int totalSeats,
+        int bookedSeats)
     {
         if (price < 0)
         {
@@ -26,27 +30,21 @@ public class FlightClassInventory
                 nameof(totalSeats), totalSeats, "Total seats cannot be negative.");
         }
 
-        if (availableSeats < 0)
+        if (bookedSeats < 0 || bookedSeats > totalSeats)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(availableSeats), availableSeats, "Available seats cannot be negative.");
-        }
-
-        if (availableSeats > totalSeats)
-        {
-            throw new ArgumentException(
-                "Available seats cannot exceed total seats.",
-                nameof(availableSeats));
+                nameof(bookedSeats),
+                bookedSeats,
+                "Booked seats must be between zero and total seats.");
         }
 
         Price = price;
         TotalSeats = totalSeats;
-        AvailableSeats = availableSeats;
+        BookedSeats = bookedSeats;
     }
 
-    
     public FlightClassInventory(decimal price, int totalSeats)
-        : this(price, totalSeats, totalSeats)
+        : this(price, totalSeats, 0)
     {
     }
 }
