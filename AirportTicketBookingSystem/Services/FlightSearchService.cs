@@ -1,5 +1,4 @@
-﻿
-using AirportTicketBooking.Models;
+﻿using AirportTicketBooking.Models;
 
 namespace AirportTicketBooking.Services;
 

@@ -2,8 +2,6 @@
 
 namespace AirportTicketBooking.Models;
 
-
-
 public class Flight
 {
     public Guid Id { get; private set; }

@@ -22,7 +22,6 @@ public class BookingService
         _flights = _flightStorage.Load();
     }
 
-    // Add a flight and save it
     public void AddFlight(Flight flight)
     {
         ArgumentNullException.ThrowIfNull(flight);
@@ -37,13 +36,11 @@ public class BookingService
         _flightStorage.Save(_flights);
     }
 
-    // Get all flights
     public List<Flight> GetAllFlights()
     {
         return _flights.ToList();
     }
 
-    // Create a booking
     public Booking CreateBooking(
         Guid passengerId,
         Guid flightId,
@@ -56,8 +53,7 @@ public class BookingService
                 nameof(passengerId));
         }
 
-        Flight? flight = _flights.FirstOrDefault(
-            f => f.Id == flightId);
+        Flight? flight = FindFlight(flightId);
 
         if (flight is null)
         {
@@ -84,7 +80,6 @@ public class BookingService
         return booking;
     }
 
-    // Cancel a booking
     public void CancelBooking(Guid bookingId)
     {
         Booking? booking = GetBookingById(bookingId);
@@ -101,8 +96,7 @@ public class BookingService
                 "Only confirmed bookings can be cancelled.");
         }
 
-        Flight? flight = _flights.FirstOrDefault(
-            f => f.Id == booking.FlightId);
+        Flight? flight = FindFlight(booking.FlightId);
 
         if (flight is null)
         {
@@ -121,7 +115,6 @@ public class BookingService
         _bookingStorage.Save(_bookings);
     }
 
-    // Get passenger bookings
     public List<Booking> GetPassengerBookings(Guid passengerId)
     {
         return _bookings
@@ -129,18 +122,23 @@ public class BookingService
             .ToList();
     }
 
-    // Get all bookings
     public List<Booking> GetAllBookings()
     {
         return _bookings.ToList();
     }
 
-    // Find a booking by ID
     public Booking? GetBookingById(Guid bookingId)
     {
         return _bookings.FirstOrDefault(
             b => b.Id == bookingId);
     }
+
+    private Flight? FindFlight(Guid flightId)
+    {
+        return _flights.FirstOrDefault(
+            f => f.Id == flightId);
+    }
+
     private bool FlightAlreadyExists(Flight flight)
     {
         return _flights.Any(existingFlight =>
@@ -165,8 +163,6 @@ public class BookingService
              existingFlight.DepartureDate == flight.DepartureDate));
     }
 
-
-    // Add multiple flights and save them
     public List<string> AddFlights(IEnumerable<Flight> flights)
     {
         ArgumentNullException.ThrowIfNull(flights);
