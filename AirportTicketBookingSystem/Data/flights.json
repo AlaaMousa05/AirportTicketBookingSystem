@@ -76,31 +76,5 @@
       "BookedSeats": 0,
       "AvailableSeats": 10
     }
-  },
-  {
-    "Id": "f4ecde74-19a3-491d-8a90-234e5f72e3f0",
-    "DepartureCountry": "Palestine",
-    "DestinationCountry": "Turkey",
-    "DepartureAirport": "Ramallah Airport",
-    "ArrivalAirport": "Istanbul Airport",
-    "DepartureDate": "2020-12-20T00:00:00",
-    "Economy": {
-      "Price": 150,
-      "TotalSeats": 100,
-      "BookedSeats": 0,
-      "AvailableSeats": 100
-    },
-    "Business": {
-      "Price": 300,
-      "TotalSeats": 30,
-      "BookedSeats": 0,
-      "AvailableSeats": 30
-    },
-    "FirstClass": {
-      "Price": 600,
-      "TotalSeats": 10,
-      "BookedSeats": 0,
-      "AvailableSeats": 10
-    }
   }
 ]

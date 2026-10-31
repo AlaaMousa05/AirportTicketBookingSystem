@@ -1,5 +1,4 @@
-﻿
-namespace AirportTicketBooking.Models;
+﻿namespace AirportTicketBooking.Models;
 
 public enum FlightClass
 {
