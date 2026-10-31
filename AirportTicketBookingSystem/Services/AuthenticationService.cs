@@ -12,9 +12,19 @@ public class AuthenticationService
         _users = userStorage.Load();
     }
 
+    public User? FindUserByUsername(string username)
+    {
+        return _users.FirstOrDefault(u => u.Username == username);
+    }
+
+    public User? FindUserById(Guid userId)
+    {
+        return _users.FirstOrDefault(u => u.Id == userId);
+    }
+
     public User? Login(string username, string password)
     {
-        User? user = _users.FirstOrDefault(u => u.Username == username);
+        User? user = FindUserByUsername(username);
 
         if (user is null || !PasswordHasher.Verify(password, user.PasswordHash))
             return null;

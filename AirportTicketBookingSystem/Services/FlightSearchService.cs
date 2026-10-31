@@ -48,30 +48,20 @@ public class FlightSearchService
                     StringComparison.OrdinalIgnoreCase));
         }
 
-        if (criteria.FlightClass.HasValue)
-        {
-            results = results.Where(f =>
-                GetPrice(f, criteria.FlightClass.Value) > 0);
-        }
+        results = results.Where(f => f.DepartureDate.Date >= DateTime.Today);
 
-        if (criteria.MaxPrice.HasValue && criteria.FlightClass.HasValue)
-        {
-            results = results.Where(f =>
-                GetPrice(f, criteria.FlightClass.Value)
-                <= criteria.MaxPrice.Value);
-        }
+        results = results.Where(f => criteria.FlightClass.HasValue
+            ? MatchesClass(f.GetInventory(criteria.FlightClass.Value), criteria.MaxPrice)
+            : MatchesClass(f.Economy, criteria.MaxPrice) ||
+              MatchesClass(f.Business, criteria.MaxPrice) ||
+              MatchesClass(f.FirstClass, criteria.MaxPrice));
 
         return results.ToList();
     }
 
-    private static decimal GetPrice(Flight flight, FlightClass flightClass)
+    private static bool MatchesClass(FlightClassInventory inventory, decimal? maxPrice)
     {
-        return flightClass switch
-        {
-            FlightClass.Economy => flight.Economy.Price,
-            FlightClass.Business => flight.Business.Price,
-            FlightClass.FirstClass => flight.FirstClass.Price,
-            _ => 0
-        };
+        return inventory.AvailableSeats > 0 &&
+            (!maxPrice.HasValue || inventory.Price <= maxPrice.Value);
     }
 }

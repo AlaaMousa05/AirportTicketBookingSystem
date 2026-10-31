@@ -1,19 +1,30 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using AirportTicketBooking.Validation;
 
 namespace AirportTicketBooking.Models;
 
 public class Flight
 {
+    public const string DepartureDateFormat = "yyyy-MM-dd";
+
     public Guid Id { get; private set; }
 
+    [Required]
     public string DepartureCountry { get; private set; }
 
+    [Required]
     public string DestinationCountry { get; private set; }
 
+    [Required]
     public string DepartureAirport { get; private set; }
 
+    [Required]
     public string ArrivalAirport { get; private set; }
 
+    [Required]
+    [FutureDate]
+    [DisplayFormat(DataFormatString = DepartureDateFormat)]
     public DateTime DepartureDate { get; private set; }
 
     public FlightClassInventory Economy { get; private set; }
