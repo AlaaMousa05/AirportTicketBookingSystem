@@ -47,4 +47,26 @@ public class FlightClassInventory
         : this(price, totalSeats, 0)
     {
     }
+
+    public void BookSeat()
+    {
+        if (AvailableSeats <= 0)
+        {
+            throw new InvalidOperationException(
+                "No available seats in this class.");
+        }
+
+        BookedSeats++;
+    }
+
+    public void CancelSeat()
+    {
+        if (BookedSeats <= 0)
+        {
+            throw new InvalidOperationException(
+                "There are no booked seats to cancel.");
+        }
+
+        BookedSeats--;
+    }
 }

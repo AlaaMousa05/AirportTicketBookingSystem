@@ -38,5 +38,6 @@ public class JsonFileStorage<T> where T : class
             new JsonSerializerOptions { WriteIndented = true });
 
         File.WriteAllText(_filePath, json);
+        Console.WriteLine($"Saved file: {Path.GetFullPath(_filePath)}");
     }
 }
