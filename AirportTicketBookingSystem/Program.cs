@@ -1,107 +1,152 @@
-﻿using AirportTicketBooking.Models;
+﻿
+using AirportTicketBooking.Models;
 using AirportTicketBooking.Services;
 using AirportTicketBooking.Storage;
 
+// 1. Set up the Data directory
 var dataDirectory = Path.GetFullPath(
     Path.Combine(
         AppContext.BaseDirectory,
-        "..", "..", "..",
-        "Data"));
+        "..", "..", "..", "Data"));
 
-var bookingStorage = new JsonFileStorage<Booking>(
-    Path.Combine(dataDirectory, "bookings.json"));
+Directory.CreateDirectory(dataDirectory);
 
-var flightStorage = new JsonFileStorage<Flight>(
-    Path.Combine(dataDirectory, "flights.json"));
+string csvFilePath = Path.Combine(dataDirectory, "flights-import.csv");
+string flightsFilePath = Path.Combine(dataDirectory, "flights.json");
+string bookingsFilePath = Path.Combine(dataDirectory, "bookings.json");
+
+Console.WriteLine("=== AIRPORT TICKET BOOKING - FLIGHT MANAGEMENT TEST ===");
+
+// 2. Display validation constraints
+Console.WriteLine("\n--- 1. FLIGHT VALIDATION CONSTRAINTS ---");
+
+var constraintsService = new FlightValidationConstraints();
+List<ValidationFieldDetail> constraints =
+    constraintsService.GetConstraints();
+
+foreach (ValidationFieldDetail detail in constraints)
+{
+    Console.WriteLine($"\nField: {detail.FieldName}");
+    Console.WriteLine($"Type: {detail.Type}");
+    Console.WriteLine($"Constraint: {detail.Constraint}");
+}
+
+// 3. Initialize storage and services
+var flightStorage = new JsonFileStorage<Flight>(flightsFilePath);
+var bookingStorage = new JsonFileStorage<Booking>(bookingsFilePath);
 
 var bookingService = new BookingService(
     bookingStorage,
     flightStorage);
 
-// Add sample flights only if no flights exist
-if (!bookingService.GetAllFlights().Any())
+// 4. Import CSV
+Console.WriteLine("\n--- 2. CSV IMPORT ---");
+
+var csvImportService = new FlightCsvImportService();
+
+try
 {
-    var flights = new List<Flight>
+    CsvImportResult importResult =
+        csvImportService.Import(csvFilePath);
+
+    Console.WriteLine(
+        $"Valid flights found: {importResult.ImportedFlights.Count}");
+
+    Console.WriteLine(
+        $"CSV validation errors: {importResult.Errors.Count}");
+
+    // 5. Display imported flights
+    Console.WriteLine("\n--- 3. IMPORTED FLIGHTS ---");
+
+    foreach (Flight flight in importResult.ImportedFlights)
     {
-        new Flight(
-            "Palestine",
-            "Jordan",
-            "Jenin Airport",
-            "Queen Alia Airport",
-            new DateTime(2026, 12, 15),
-            new FlightClassInventory(100, 100),
-            new FlightClassInventory(250, 30),
-            new FlightClassInventory(500, 10)
-        ),
+        Console.WriteLine(
+            $"{flight.DepartureCountry} -> {flight.DestinationCountry} | " +
+            $"{flight.DepartureDate:yyyy-MM-dd}");
 
-        new Flight(
-            "Palestine",
-            "Turkey",
-            "Ramallah Airport",
-            "Istanbul Airport",
-            new DateTime(2026, 12, 20),
-            new FlightClassInventory(150, 100),
-            new FlightClassInventory(300, 30),
-            new FlightClassInventory(600, 10)
-        ),
+        Console.WriteLine(
+            $"Economy: Price={flight.Economy.Price}, Seats={flight.Economy.TotalSeats}");
 
-        new Flight(
-            "Jordan",
-            "Turkey",
-            "Queen Alia Airport",
-            "Istanbul Airport",
-            new DateTime(2026, 12, 25),
-            new FlightClassInventory(120, 100),
-            new FlightClassInventory(280, 30),
-            new FlightClassInventory(550, 10)
-        )
-    };
+        Console.WriteLine(
+            $"Business: Price={flight.Business.Price}, Seats={flight.Business.TotalSeats}");
 
-    foreach (var flight in flights)
-    {
-        bookingService.AddFlight(flight);
+        Console.WriteLine(
+            $"First Class: Price={flight.FirstClass.Price}, Seats={flight.FirstClass.TotalSeats}");
     }
+
+    // 6. Display CSV validation errors
+    Console.WriteLine("\n--- 4. CSV VALIDATION ERRORS ---");
+
+    if (importResult.Errors.Count == 0)
+    {
+        Console.WriteLine("No CSV validation errors.");
+    }
+    else
+    {
+        foreach (string error in importResult.Errors)
+        {
+            Console.WriteLine(error);
+        }
+    }
+
+    // 7. Add valid flights and detect duplicates
+    Console.WriteLine("\n--- 5. ADD FLIGHTS TO STORAGE ---");
+
+    List<string> addErrors =
+        bookingService.AddFlights(importResult.ImportedFlights);
+
+    Console.WriteLine(
+        $"Duplicate flights: {addErrors.Count}");
+
+    if (addErrors.Count == 0)
+    {
+        Console.WriteLine("No duplicate flights found.");
+    }
+    else
+    {
+        foreach (string error in addErrors)
+        {
+            Console.WriteLine(error);
+        }
+    }
+
+    // 8. Verify all saved flights
+    Console.WriteLine("\n--- 6. SAVED FLIGHTS ---");
+
+    List<Flight> savedFlights = bookingService.GetAllFlights();
+
+    Console.WriteLine($"Total flights in storage: {savedFlights.Count}");
+
+    foreach (Flight flight in savedFlights)
+    {
+        Console.WriteLine(
+            $"{flight.DepartureCountry} -> {flight.DestinationCountry} | " +
+            $"{flight.DepartureDate:yyyy-MM-dd}");
+    }
+
+    // 9. Verify persistence by loading JSON again
+    Console.WriteLine("\n--- 7. PERSISTENCE CHECK ---");
+
+    var verificationStorage =
+        new JsonFileStorage<Flight>(flightsFilePath);
+
+    List<Flight> reloadedFlights = verificationStorage.Load();
+
+    Console.WriteLine(
+        $"Flights loaded again from JSON: {reloadedFlights.Count}");
+
+    Console.WriteLine(
+        reloadedFlights.Count == savedFlights.Count
+            ? "Persistence check passed."
+            : "Persistence check failed.");
+
+    Console.WriteLine("\n=== TEST COMPLETED ===");
 }
-
-Guid bookingId = Guid.Parse(
-    "a7ef2331-0dc2-4f31-b5c3-34e5a882f91e");
-
-bookingService.CancelBooking(bookingId);
-
-var firstFlight = bookingService.GetAllFlights().First();
-
-Console.WriteLine($"Available seats: {firstFlight.Economy.AvailableSeats}");
-Console.WriteLine($"Booked seats: {firstFlight.Economy.BookedSeats}");
-
-var cancelledBooking = bookingService.GetBookingById(bookingId);
-
-Console.WriteLine($"Booking status: {cancelledBooking?.Status}");
-
-
-
-
-// Display loaded flights
-var loadedFlights = bookingService.GetAllFlights();
-
-Console.WriteLine($"Loaded flights: {loadedFlights.Count}");
-
-foreach (var flight in loadedFlights)
+catch (FileNotFoundException ex)
 {
-    Console.WriteLine($"\nFlight ID: {flight.Id}");
-    Console.WriteLine(
-        $"{flight.DepartureCountry} -> {flight.DestinationCountry}");
-
-    Console.WriteLine($"Date: {flight.DepartureDate:d}");
-
-    Console.WriteLine(
-        $"Economy: {flight.Economy.Price} | " +
-        $"Available seats: {flight.Economy.AvailableSeats}");
-
-    Console.WriteLine(
-        $"Business: {flight.Business.Price} | " +
-        $"Available seats: {flight.Business.AvailableSeats}");
-
-    Console.WriteLine(
-        $"First Class: {flight.FirstClass.Price} | " +
-        $"Available seats: {flight.FirstClass.AvailableSeats}");
+    Console.WriteLine($"File error: {ex.Message}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Unexpected error: {ex.Message}");
 }

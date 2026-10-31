@@ -27,7 +27,7 @@ public class BookingService
     {
         ArgumentNullException.ThrowIfNull(flight);
 
-        if (_flights.Any(f => f.Id == flight.Id))
+        if (FlightAlreadyExists(flight))
         {
             throw new InvalidOperationException(
                 "This flight already exists.");
@@ -140,5 +140,64 @@ public class BookingService
     {
         return _bookings.FirstOrDefault(
             b => b.Id == bookingId);
+    }
+    private bool FlightAlreadyExists(Flight flight)
+    {
+        return _flights.Any(existingFlight =>
+            existingFlight.Id == flight.Id ||
+
+            (existingFlight.DepartureCountry.Equals(
+                flight.DepartureCountry,
+                StringComparison.OrdinalIgnoreCase) &&
+
+             existingFlight.DestinationCountry.Equals(
+                flight.DestinationCountry,
+                StringComparison.OrdinalIgnoreCase) &&
+
+             existingFlight.DepartureAirport.Equals(
+                flight.DepartureAirport,
+                StringComparison.OrdinalIgnoreCase) &&
+
+             existingFlight.ArrivalAirport.Equals(
+                flight.ArrivalAirport,
+                StringComparison.OrdinalIgnoreCase) &&
+
+             existingFlight.DepartureDate == flight.DepartureDate));
+    }
+
+
+    // Add multiple flights and save them
+    public List<string> AddFlights(IEnumerable<Flight> flights)
+    {
+        ArgumentNullException.ThrowIfNull(flights);
+
+        var errors = new List<string>();
+        bool hasChanges = false;
+
+        foreach (Flight flight in flights)
+        {
+            if (flight is null)
+            {
+                errors.Add("Cannot import a null flight.");
+                continue;
+            }
+
+            if (FlightAlreadyExists(flight))
+            {
+                errors.Add(
+                    $"Duplicate flight: {flight.DepartureCountry} to {flight.DestinationCountry} on {flight.DepartureDate:d}.");
+                continue;
+            }
+
+            _flights.Add(flight);
+            hasChanges = true;
+        }
+
+        if (hasChanges)
+        {
+            _flightStorage.Save(_flights);
+        }
+
+        return errors;
     }
 }

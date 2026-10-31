@@ -1,0 +1,5 @@
+DepartureCountry,DestinationCountry,DepartureAirport,ArrivalAirport,DepartureDate,EconomyPrice,EconomySeats,BusinessPrice,BusinessSeats,FirstClassPrice,FirstClassSeats
+Palestine,Jordan,Jenin Airport,Queen Alia Airport,2026-12-15,abc,-5,250,30,500,10
+Palestine,Turkey,Ramallah Airport,Istanbul Airport,2026-12-20,150,100,xyz,30,600,10
+Jordan,Turkey,Queen Alia Airport,Istanbul Airport,2026-12-25,120,100,280,30,550,10
+,Jordan,,Queen Alia Airport,2026-12-15,100,100,250,30,500,10
