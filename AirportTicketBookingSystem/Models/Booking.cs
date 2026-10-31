@@ -51,4 +51,20 @@ public class Booking
 
         Status = BookingStatus.Cancelled;
     }
+
+    public void Modify(
+        Guid flightId,
+        FlightClass flightClass,
+        decimal price)
+    {
+        if (flightId == Guid.Empty)
+            throw new ArgumentException("Flight ID is required.");
+
+        if (price < 0)
+            throw new ArgumentOutOfRangeException(nameof(price));
+
+        FlightId = flightId;
+        FlightClass = flightClass;
+        Price = price;
+    }
 }

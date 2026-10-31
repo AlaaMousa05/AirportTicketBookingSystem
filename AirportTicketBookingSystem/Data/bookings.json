@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "Id": "cee43d0d-5e77-499c-822c-4406ec251d62",
+    "PassengerId": "e2c2c941-6c2b-4ae1-94f9-a15d1e1de5c1",
+    "FlightId": "dbe8417e-e8ea-4c60-87e8-2afa80977750",
+    "FlightClass": 2,
+    "Price": 600,
+    "Status": 1
+  },
+  {
+    "Id": "d7972d2a-eb73-492b-8640-5acb7d77d664",
+    "PassengerId": "e2c2c941-6c2b-4ae1-94f9-a15d1e1de5c1",
+    "FlightId": "cda1e954-23c7-46f5-99fd-a4d614bcc952",
+    "FlightClass": 2,
+    "Price": 550,
+    "Status": 0
+  }
+]

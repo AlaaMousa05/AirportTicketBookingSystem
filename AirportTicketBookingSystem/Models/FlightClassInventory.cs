@@ -1,11 +1,20 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace AirportTicketBooking.Models;
 
 public class FlightClassInventory
 {
+    public const decimal MinimumPrice = 0;
+    public const int MinimumSeats = 0;
+
+    [Required]
+    [Range((double)MinimumPrice, double.MaxValue)]
     public decimal Price { get; }
 
+    [Required]
+    [Range(MinimumSeats, int.MaxValue)]
+    [Display(Name = "Seats")]
     public int TotalSeats { get; }
 
     public int BookedSeats { get; private set; }
@@ -18,16 +27,16 @@ public class FlightClassInventory
         int totalSeats,
         int bookedSeats)
     {
-        if (price < 0)
+        if (price < MinimumPrice)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(price), price, "Price cannot be negative.");
+                nameof(price), price, $"Price must be at least {MinimumPrice}.");
         }
 
-        if (totalSeats < 0)
+        if (totalSeats < MinimumSeats)
         {
             throw new ArgumentOutOfRangeException(
-                nameof(totalSeats), totalSeats, "Total seats cannot be negative.");
+                nameof(totalSeats), totalSeats, $"Total seats must be at least {MinimumSeats}.");
         }
 
         if (bookedSeats < 0 || bookedSeats > totalSeats)

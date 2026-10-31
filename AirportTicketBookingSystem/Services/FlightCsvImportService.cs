@@ -5,7 +5,7 @@ namespace AirportTicketBooking.Services;
 
 public class FlightCsvImportService
 {
-    private const string DateFormat = "yyyy-MM-dd";
+    private const string DateFormat = Flight.DepartureDateFormat;
 
     private static readonly string[] ExpectedHeaders =
     {
@@ -173,8 +173,8 @@ public class FlightCsvImportService
             return default;
         }
 
-        if (price < 0)
-            errors.Add($"{fieldName} cannot be negative.");
+        if (price < FlightClassInventory.MinimumPrice)
+            errors.Add($"{fieldName} must be at least {FlightClassInventory.MinimumPrice}.");
 
         return price;
     }
@@ -202,8 +202,8 @@ public class FlightCsvImportService
             return default;
         }
 
-        if (seats < 0)
-            errors.Add($"{fieldName} cannot be negative.");
+        if (seats < FlightClassInventory.MinimumSeats)
+            errors.Add($"{fieldName} must be at least {FlightClassInventory.MinimumSeats}.");
 
         return seats;
     }

@@ -6,39 +6,17 @@ namespace AirportTicketBooking.Services;
 public class BookingService
 {
     private readonly List<Booking> _bookings;
-    private readonly List<Flight> _flights;
-
     private readonly JsonFileStorage<Booking> _bookingStorage;
-    private readonly JsonFileStorage<Flight> _flightStorage;
+    private readonly FlightService _flightService;
 
     public BookingService(
         JsonFileStorage<Booking> bookingStorage,
-        JsonFileStorage<Flight> flightStorage)
+        FlightService flightService)
     {
         _bookingStorage = bookingStorage;
-        _flightStorage = flightStorage;
+        _flightService = flightService;
 
         _bookings = _bookingStorage.Load();
-        _flights = _flightStorage.Load();
-    }
-
-    public void AddFlight(Flight flight)
-    {
-        ArgumentNullException.ThrowIfNull(flight);
-
-        if (FlightAlreadyExists(flight))
-        {
-            throw new InvalidOperationException(
-                "This flight already exists.");
-        }
-
-        _flights.Add(flight);
-        _flightStorage.Save(_flights);
-    }
-
-    public List<Flight> GetAllFlights()
-    {
-        return _flights.ToList();
     }
 
     public Booking CreateBooking(
@@ -46,20 +24,7 @@ public class BookingService
         Guid flightId,
         FlightClass flightClass)
     {
-        if (passengerId == Guid.Empty)
-        {
-            throw new ArgumentException(
-                "Passenger ID is required.",
-                nameof(passengerId));
-        }
-
-        Flight? flight = FindFlight(flightId);
-
-        if (flight is null)
-        {
-            throw new InvalidOperationException(
-                "Flight was not found.");
-        }
+        Flight flight = GetFlight(flightId);
 
         FlightClassInventory inventory =
             flight.GetInventory(flightClass);
@@ -74,15 +39,75 @@ public class BookingService
 
         _bookings.Add(booking);
 
-        _flightStorage.Save(_flights);
-        _bookingStorage.Save(_bookings);
+        SaveChanges();
 
         return booking;
     }
 
     public void CancelBooking(Guid bookingId, Guid passengerId)
     {
-        Booking? booking = GetBookingById(bookingId);
+        Booking booking = GetConfirmedBooking(bookingId, passengerId, "cancelled");
+
+        Flight flight = GetFlight(booking.FlightId);
+
+        flight.GetInventory(booking.FlightClass).CancelSeat();
+
+        booking.Cancel();
+
+        SaveChanges();
+    }
+
+    public void ModifyBooking(
+        Guid bookingId,
+        Guid passengerId,
+        Guid newFlightId,
+        FlightClass newFlightClass)
+    {
+        Booking booking = GetConfirmedBooking(bookingId, passengerId, "modified");
+
+        if (booking.FlightId == newFlightId &&
+            booking.FlightClass == newFlightClass)
+        {
+            throw new InvalidOperationException(
+                "The booking already has this flight and class.");
+        }
+
+        Flight oldFlight = GetFlight(booking.FlightId);
+        Flight newFlight = GetFlight(newFlightId);
+
+        FlightClassInventory newInventory =
+            newFlight.GetInventory(newFlightClass);
+
+        // Book first: if the new class is full, nothing has changed yet.
+        newInventory.BookSeat();
+
+        oldFlight.GetInventory(booking.FlightClass).CancelSeat();
+
+        booking.Modify(newFlightId, newFlightClass, newInventory.Price);
+
+        SaveChanges();
+    }
+
+    public List<Booking> GetPassengerBookings(Guid passengerId)
+    {
+        return _bookings
+            .Where(b => b.PassengerId == passengerId)
+            .ToList();
+    }
+
+    public List<Booking> FilterBookings(BookingFilterCriteria criteria)
+    {
+        return _bookings
+            .Where(b => MatchesFilter(b, criteria))
+            .ToList();
+    }
+
+    private Booking GetConfirmedBooking(
+        Guid bookingId,
+        Guid passengerId,
+        string action)
+    {
+        Booking? booking = _bookings.FirstOrDefault(b => b.Id == bookingId);
 
         if (booking is null || booking.PassengerId != passengerId)
         {
@@ -93,107 +118,62 @@ public class BookingService
         if (booking.Status != BookingStatus.Confirmed)
         {
             throw new InvalidOperationException(
-                "Only confirmed bookings can be cancelled.");
+                $"Only confirmed bookings can be {action}.");
         }
 
-        Flight? flight = FindFlight(booking.FlightId);
+        return booking;
+    }
+
+    private Flight GetFlight(Guid flightId)
+    {
+        Flight? flight = _flightService.FindFlight(flightId);
 
         if (flight is null)
         {
             throw new InvalidOperationException(
-                "The flight associated with this booking was not found.");
+                "Flight was not found.");
         }
 
-        FlightClassInventory inventory =
-            flight.GetInventory(booking.FlightClass);
+        return flight;
+    }
 
-        inventory.CancelSeat();
-
-        booking.Cancel();
-
-        _flightStorage.Save(_flights);
+    private void SaveChanges()
+    {
+        _flightService.SaveFlights();
         _bookingStorage.Save(_bookings);
     }
 
-    public List<Booking> GetPassengerBookings(Guid passengerId)
+    private bool MatchesFilter(Booking booking, BookingFilterCriteria criteria)
     {
-        return _bookings
-            .Where(b => b.PassengerId == passengerId)
-            .ToList();
+        Flight? flight = _flightService.FindFlight(booking.FlightId);
+
+        if (flight is null)
+            return false;
+
+        return MatchesBooking(booking, criteria) && MatchesFlight(flight, criteria);
     }
 
-    public List<Booking> GetAllBookings()
+    private static bool MatchesBooking(Booking booking, BookingFilterCriteria criteria)
     {
-        return _bookings.ToList();
+        return (!criteria.FlightId.HasValue || booking.FlightId == criteria.FlightId) &&
+            (!criteria.PassengerId.HasValue || booking.PassengerId == criteria.PassengerId) &&
+            (!criteria.FlightClass.HasValue || booking.FlightClass == criteria.FlightClass) &&
+            (!criteria.MaxPrice.HasValue || booking.Price <= criteria.MaxPrice);
     }
 
-    public Booking? GetBookingById(Guid bookingId)
+    private static bool MatchesFlight(Flight flight, BookingFilterCriteria criteria)
     {
-        return _bookings.FirstOrDefault(
-            b => b.Id == bookingId);
+        return MatchesText(flight.DepartureCountry, criteria.DepartureCountry) &&
+            MatchesText(flight.DestinationCountry, criteria.DestinationCountry) &&
+            MatchesText(flight.DepartureAirport, criteria.DepartureAirport) &&
+            MatchesText(flight.ArrivalAirport, criteria.ArrivalAirport) &&
+            (!criteria.DepartureDate.HasValue ||
+                flight.DepartureDate.Date == criteria.DepartureDate.Value.Date);
     }
 
-    private Flight? FindFlight(Guid flightId)
+    private static bool MatchesText(string value, string? expected)
     {
-        return _flights.FirstOrDefault(
-            f => f.Id == flightId);
-    }
-
-    private bool FlightAlreadyExists(Flight flight)
-    {
-        return _flights.Any(existingFlight =>
-            existingFlight.Id == flight.Id ||
-
-            (existingFlight.DepartureCountry.Equals(
-                flight.DepartureCountry,
-                StringComparison.OrdinalIgnoreCase) &&
-
-             existingFlight.DestinationCountry.Equals(
-                flight.DestinationCountry,
-                StringComparison.OrdinalIgnoreCase) &&
-
-             existingFlight.DepartureAirport.Equals(
-                flight.DepartureAirport,
-                StringComparison.OrdinalIgnoreCase) &&
-
-             existingFlight.ArrivalAirport.Equals(
-                flight.ArrivalAirport,
-                StringComparison.OrdinalIgnoreCase) &&
-
-             existingFlight.DepartureDate == flight.DepartureDate));
-    }
-
-    public List<string> AddFlights(IEnumerable<Flight> flights)
-    {
-        ArgumentNullException.ThrowIfNull(flights);
-
-        var errors = new List<string>();
-        bool hasChanges = false;
-
-        foreach (Flight flight in flights)
-        {
-            if (flight is null)
-            {
-                errors.Add("Cannot import a null flight.");
-                continue;
-            }
-
-            if (FlightAlreadyExists(flight))
-            {
-                errors.Add(
-                    $"Duplicate flight: {flight.DepartureCountry} to {flight.DestinationCountry} on {flight.DepartureDate:d}.");
-                continue;
-            }
-
-            _flights.Add(flight);
-            hasChanges = true;
-        }
-
-        if (hasChanges)
-        {
-            _flightStorage.Save(_flights);
-        }
-
-        return errors;
+        return string.IsNullOrWhiteSpace(expected) ||
+            value.Equals(expected, StringComparison.OrdinalIgnoreCase);
     }
 }
