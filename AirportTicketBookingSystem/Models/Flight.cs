@@ -56,4 +56,16 @@ public class Flight
         Business = business;
         FirstClass = firstClass;
     }
+
+
+    public FlightClassInventory GetInventory(FlightClass flightClass)
+    {
+        return flightClass switch
+        {
+            FlightClass.Economy => Economy,
+            FlightClass.Business => Business,
+            FlightClass.FirstClass => FirstClass,
+            _ => throw new ArgumentOutOfRangeException(nameof(flightClass))
+        };
+    }
 }

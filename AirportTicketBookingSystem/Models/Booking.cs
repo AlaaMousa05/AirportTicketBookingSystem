@@ -1,10 +1,13 @@
-﻿namespace AirportTicketBooking.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace AirportTicketBooking.Models;
 
 public class Booking
 {
-    public Guid Id { get; init; } = Guid.NewGuid();
+    [JsonInclude]
+    public Guid Id { get; private set; }
 
-    public Guid PassengerId { get; init; }
+    public Guid PassengerId { get; private set; }
 
     public Guid FlightId { get; private set; }
 
@@ -12,5 +15,40 @@ public class Booking
 
     public decimal Price { get; private set; }
 
-    public BookingStatus Status { get; private set; } = BookingStatus.Confirmed;
+    [JsonInclude]
+    public BookingStatus Status { get; private set; }
+
+    public Booking(
+        Guid passengerId,
+        Guid flightId,
+        FlightClass flightClass,
+        decimal price)
+    {
+        if (passengerId == Guid.Empty)
+            throw new ArgumentException("Passenger ID is required.");
+
+        if (flightId == Guid.Empty)
+            throw new ArgumentException("Flight ID is required.");
+
+        if (price < 0)
+            throw new ArgumentOutOfRangeException(nameof(price));
+
+        Id = Guid.NewGuid();
+        PassengerId = passengerId;
+        FlightId = flightId;
+        FlightClass = flightClass;
+        Price = price;
+        Status = BookingStatus.Confirmed;
+    }
+
+    public void Cancel()
+    {
+        if (Status != BookingStatus.Confirmed)
+        {
+            throw new InvalidOperationException(
+                "Only confirmed bookings can be cancelled.");
+        }
+
+        Status = BookingStatus.Cancelled;
+    }
 }

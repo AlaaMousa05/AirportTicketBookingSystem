@@ -1,0 +1,42 @@
+[
+  {
+    "Id": "4781f1a6-3a22-483f-bd2d-e8a35119007d",
+    "PassengerId": "5a73ebc0-0ee0-46c0-8ce1-e90b93d19196",
+    "FlightId": "603fa5ca-1665-42d7-8dfe-8cfad6152dbe",
+    "FlightClass": 0,
+    "Price": 100,
+    "Status": 1
+  },
+  {
+    "Id": "051392d4-5cc5-4fce-9b6e-6b38e07e4cf4",
+    "PassengerId": "5d31a0a1-2b11-475a-8351-d2fb7969e190",
+    "FlightId": "5d3d1470-8e37-4b38-bfc2-5de1611afa3d",
+    "FlightClass": 0,
+    "Price": 100,
+    "Status": 1
+  },
+  {
+    "Id": "8b38cf0a-3005-4dde-afaa-1a77c8a39963",
+    "PassengerId": "250e44d0-4c9a-49e5-9d20-bf815d73fabf",
+    "FlightId": "09243ffb-c1af-4006-bd2d-3e979df550d6",
+    "FlightClass": 0,
+    "Price": 100,
+    "Status": 1
+  },
+  {
+    "Id": "5e699594-5324-4303-b835-10cbd163cd6a",
+    "PassengerId": "8893e4b6-de08-489d-8208-2302cb5b70ca",
+    "FlightId": "51cb34a5-92db-4302-958b-78adbd2d4482",
+    "FlightClass": 0,
+    "Price": 100,
+    "Status": 1
+  },
+  {
+    "Id": "684dca23-632f-4cb2-b6bc-3b46178bd723",
+    "PassengerId": "94e5e029-8c64-4b10-ad4d-e2840e2ac02f",
+    "FlightId": "124c77e8-91a9-40d1-8857-47989bbabd1b",
+    "FlightClass": 0,
+    "Price": 100,
+    "Status": 1
+  }
+]
