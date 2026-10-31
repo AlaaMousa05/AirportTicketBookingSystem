@@ -1,0 +1,80 @@
+[
+  {
+    "Id": "9e1533f5-e60a-4f58-a0f2-d3f531d48980",
+    "DepartureCountry": "Palestine",
+    "DestinationCountry": "Jordan",
+    "DepartureAirport": "Jenin Airport",
+    "ArrivalAirport": "Queen Alia Airport",
+    "DepartureDate": "2026-12-15T00:00:00",
+    "Economy": {
+      "Price": 100,
+      "TotalSeats": 100,
+      "BookedSeats": 0,
+      "AvailableSeats": 100
+    },
+    "Business": {
+      "Price": 250,
+      "TotalSeats": 30,
+      "BookedSeats": 0,
+      "AvailableSeats": 30
+    },
+    "FirstClass": {
+      "Price": 500,
+      "TotalSeats": 10,
+      "BookedSeats": 0,
+      "AvailableSeats": 10
+    }
+  },
+  {
+    "Id": "dbe8417e-e8ea-4c60-87e8-2afa80977750",
+    "DepartureCountry": "Palestine",
+    "DestinationCountry": "Turkey",
+    "DepartureAirport": "Ramallah Airport",
+    "ArrivalAirport": "Istanbul Airport",
+    "DepartureDate": "2026-12-20T00:00:00",
+    "Economy": {
+      "Price": 150,
+      "TotalSeats": 100,
+      "BookedSeats": 0,
+      "AvailableSeats": 100
+    },
+    "Business": {
+      "Price": 300,
+      "TotalSeats": 30,
+      "BookedSeats": 0,
+      "AvailableSeats": 30
+    },
+    "FirstClass": {
+      "Price": 600,
+      "TotalSeats": 10,
+      "BookedSeats": 0,
+      "AvailableSeats": 10
+    }
+  },
+  {
+    "Id": "cda1e954-23c7-46f5-99fd-a4d614bcc952",
+    "DepartureCountry": "Jordan",
+    "DestinationCountry": "Turkey",
+    "DepartureAirport": "Queen Alia Airport",
+    "ArrivalAirport": "Istanbul Airport",
+    "DepartureDate": "2026-12-25T00:00:00",
+    "Economy": {
+      "Price": 120,
+      "TotalSeats": 100,
+      "BookedSeats": 0,
+      "AvailableSeats": 100
+    },
+    "Business": {
+      "Price": 280,
+      "TotalSeats": 30,
+      "BookedSeats": 0,
+      "AvailableSeats": 30
+    },
+    "FirstClass": {
+      "Price": 550,
+      "TotalSeats": 10,
+      "BookedSeats": 0,
+      "AvailableSeats": 10
+    }
+  }
+]

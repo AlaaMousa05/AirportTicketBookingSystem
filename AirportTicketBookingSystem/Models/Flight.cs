@@ -1,4 +1,6 @@
-﻿namespace AirportTicketBooking.Models;
+﻿using System.Text.Json.Serialization;
+
+namespace AirportTicketBooking.Models;
 
 public class Flight
 {
@@ -20,7 +22,9 @@ public class Flight
 
     public FlightClassInventory FirstClass { get; private set; }
 
+    [JsonConstructor]
     public Flight(
+        Guid id,
         string departureCountry,
         string destinationCountry,
         string departureAirport,
@@ -30,6 +34,9 @@ public class Flight
         FlightClassInventory business,
         FlightClassInventory firstClass)
     {
+        if (id == Guid.Empty)
+            throw new ArgumentException("Flight ID is required.");
+
         if (string.IsNullOrWhiteSpace(departureCountry))
             throw new ArgumentException("Departure country is required.");
 
@@ -46,7 +53,7 @@ public class Flight
         ArgumentNullException.ThrowIfNull(business);
         ArgumentNullException.ThrowIfNull(firstClass);
 
-        Id = Guid.NewGuid();
+        Id = id;
         DepartureCountry = departureCountry;
         DestinationCountry = destinationCountry;
         DepartureAirport = departureAirport;
@@ -57,6 +64,27 @@ public class Flight
         FirstClass = firstClass;
     }
 
+    public Flight(
+        string departureCountry,
+        string destinationCountry,
+        string departureAirport,
+        string arrivalAirport,
+        DateTime departureDate,
+        FlightClassInventory economy,
+        FlightClassInventory business,
+        FlightClassInventory firstClass)
+        : this(
+            Guid.NewGuid(),
+            departureCountry,
+            destinationCountry,
+            departureAirport,
+            arrivalAirport,
+            departureDate,
+            economy,
+            business,
+            firstClass)
+    {
+    }
 
     public FlightClassInventory GetInventory(FlightClass flightClass)
     {
