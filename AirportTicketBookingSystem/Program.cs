@@ -2,6 +2,7 @@
 using AirportTicketBooking.Models;
 using AirportTicketBooking.Services;
 using AirportTicketBooking.Storage;
+using AirportTicketBooking.UI;
 
 // 1. Set up the Data directory
 var dataDirectory = Path.GetFullPath(
@@ -14,6 +15,18 @@ Directory.CreateDirectory(dataDirectory);
 string csvFilePath = Path.Combine(dataDirectory, "flights-import.csv");
 string flightsFilePath = Path.Combine(dataDirectory, "flights.json");
 string bookingsFilePath = Path.Combine(dataDirectory, "bookings.json");
+string usersFilePath = Path.Combine(dataDirectory, "users.json");
+
+var userStorage = new JsonFileStorage<User>(usersFilePath);
+var authenticationService = new AuthenticationService(userStorage);
+
+User currentUser = LoginScreen.Show(authenticationService);
+
+if (currentUser.Role != UserRole.Manager)
+{
+    Console.WriteLine("Access denied: flight management is for managers only.");
+    return;
+}
 
 Console.WriteLine("=== AIRPORT TICKET BOOKING - FLIGHT MANAGEMENT TEST ===");
 
