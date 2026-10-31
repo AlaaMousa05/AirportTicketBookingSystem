@@ -2,7 +2,7 @@
 
 namespace AirportTicketBooking.Models;
 
-using System.ComponentModel.DataAnnotations;
+
 
 public class Flight
 {
