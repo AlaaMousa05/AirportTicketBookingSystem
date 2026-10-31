@@ -80,11 +80,11 @@ public class BookingService
         return booking;
     }
 
-    public void CancelBooking(Guid bookingId)
+    public void CancelBooking(Guid bookingId, Guid passengerId)
     {
         Booking? booking = GetBookingById(bookingId);
 
-        if (booking is null)
+        if (booking is null || booking.PassengerId != passengerId)
         {
             throw new InvalidOperationException(
                 "Booking was not found.");

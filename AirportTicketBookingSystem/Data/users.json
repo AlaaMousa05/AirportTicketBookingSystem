@@ -1,0 +1,20 @@
+[
+  {
+    "Id": "66434b0f-0fad-4a24-bfa0-785efe79e9ad",
+    "Username": "manager",
+    "PasswordHash": "rpHGVKhTpv9MPnjmfDeFIw==.nJ4rk/5OyDJo10h2aQqGNzEgkz1l\u002BYl3V7tYd6so3hI=",
+    "Role": 1
+  },
+  {
+    "Id": "e2c2c941-6c2b-4ae1-94f9-a15d1e1de5c1",
+    "Username": "passenger1",
+    "PasswordHash": "OkB17g3En4v3uUKk/iLJzg==.Um1/Y\u002Bk3p4aszpcXa6PXLZo0E2ZcKx7BT4R6zeKuUZA=",
+    "Role": 0
+  },
+  {
+    "Id": "bfa1987e-ad2f-4831-b086-4097567b2b90",
+    "Username": "passenger2",
+    "PasswordHash": "ZDuyu550jOP2ucpIosCKeQ==.PVBhafAEe04e\u002BdPoQIM6WNIsDYmfqXxIQ98sC4L6kl8=",
+    "Role": 0
+  }
+]
