@@ -14,5 +14,13 @@
     "FlightClass": 0,
     "Price": 100,
     "Status": 1
+  },
+  {
+    "Id": "a7ef2331-0dc2-4f31-b5c3-34e5a882f91e",
+    "PassengerId": "2d569e20-35c9-49de-ae3f-d8adc8d1d09a",
+    "FlightId": "9e1533f5-e60a-4f58-a0f2-d3f531d48980",
+    "FlightClass": 0,
+    "Price": 100,
+    "Status": 1
   }
 ]

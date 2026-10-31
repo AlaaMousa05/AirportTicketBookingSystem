@@ -1,64 +1,4 @@
-﻿//using AirportTicketBooking.Models;
-//var flights = new List<Flight>
-//{
-//    new Flight(
-//        "Palestine",
-//        "Jordan",
-//        "Jenin Airport",
-//        "Queen Alia Airport",
-//        new DateTime(2026, 12, 15),
-//        new FlightClassInventory(100, 100),
-//        new FlightClassInventory(250, 30),
-//        new FlightClassInventory(500, 10)
-//    ),
-
-//    new Flight(
-//        "Palestine",
-//        "Turkey",
-//        "Ramallah Airport",
-//        "Istanbul Airport",
-//        new DateTime(2026, 12, 20),
-//        new FlightClassInventory(150, 100),
-//        new FlightClassInventory(300, 30),
-//        new FlightClassInventory(600, 10)
-//    ),
-
-//    new Flight(
-//        "Jordan",
-//        "Turkey",
-//        "Queen Alia Airport",
-//        "Istanbul Airport",
-//        new DateTime(2026, 12, 25),
-//        new FlightClassInventory(120, 100),
-//        new FlightClassInventory(280, 30),
-//        new FlightClassInventory(550, 10)
-//    )
-//};
-
-//var searchService = new FlightSearchService();
-
-//var criteria = new FlightSearchCriteria
-//{
-//    DepartureDate = new DateTime(2026, 12, 20),
-//    DepartureAirport = "Ramallah Airport",
-//    ArrivalAirport = "Istanbul Airport"
-//};
-
-//var results = searchService.Search(flights, criteria);
-
-//Console.WriteLine($"Found {results.Count} flights:");
-
-//foreach (var flight in results)
-//{
-//    Console.WriteLine(
-//        $"{flight.DepartureCountry} -> {flight.DestinationCountry} | " +
-//        $"Price: {flight.Economy.Price} | " +
-//        $"Date: {flight.DepartureDate:d}");
-//}
-
-
-
-using AirportTicketBooking.Models;
+﻿using AirportTicketBooking.Models;
 using AirportTicketBooking.Services;
 using AirportTicketBooking.Storage;
 
@@ -68,21 +8,100 @@ var dataDirectory = Path.GetFullPath(
         "..", "..", "..",
         "Data"));
 
-var storage = new JsonFileStorage<Booking>(
+var bookingStorage = new JsonFileStorage<Booking>(
     Path.Combine(dataDirectory, "bookings.json"));
 
-var bookingService = new BookingService(storage);
+var flightStorage = new JsonFileStorage<Flight>(
+    Path.Combine(dataDirectory, "flights.json"));
 
-var bookings = bookingService.GetAllBookings();
+var bookingService = new BookingService(
+    bookingStorage,
+    flightStorage);
 
-Console.WriteLine($"Loaded bookings: {bookings.Count}");
-
-foreach (var booking in bookings)
+// Add sample flights only if no flights exist
+if (!bookingService.GetAllFlights().Any())
 {
-    Console.WriteLine($"ID: {booking.Id}");
-    Console.WriteLine($"Passenger ID: {booking.PassengerId}");
-    Console.WriteLine($"Flight ID: {booking.FlightId}");
-    Console.WriteLine($"Class: {booking.FlightClass}");
-    Console.WriteLine($"Price: {booking.Price}");
-    Console.WriteLine($"Status: {booking.Status}");
+    var flights = new List<Flight>
+    {
+        new Flight(
+            "Palestine",
+            "Jordan",
+            "Jenin Airport",
+            "Queen Alia Airport",
+            new DateTime(2026, 12, 15),
+            new FlightClassInventory(100, 100),
+            new FlightClassInventory(250, 30),
+            new FlightClassInventory(500, 10)
+        ),
+
+        new Flight(
+            "Palestine",
+            "Turkey",
+            "Ramallah Airport",
+            "Istanbul Airport",
+            new DateTime(2026, 12, 20),
+            new FlightClassInventory(150, 100),
+            new FlightClassInventory(300, 30),
+            new FlightClassInventory(600, 10)
+        ),
+
+        new Flight(
+            "Jordan",
+            "Turkey",
+            "Queen Alia Airport",
+            "Istanbul Airport",
+            new DateTime(2026, 12, 25),
+            new FlightClassInventory(120, 100),
+            new FlightClassInventory(280, 30),
+            new FlightClassInventory(550, 10)
+        )
+    };
+
+    foreach (var flight in flights)
+    {
+        bookingService.AddFlight(flight);
+    }
+}
+
+Guid bookingId = Guid.Parse(
+    "a7ef2331-0dc2-4f31-b5c3-34e5a882f91e");
+
+bookingService.CancelBooking(bookingId);
+
+var firstFlight = bookingService.GetAllFlights().First();
+
+Console.WriteLine($"Available seats: {firstFlight.Economy.AvailableSeats}");
+Console.WriteLine($"Booked seats: {firstFlight.Economy.BookedSeats}");
+
+var cancelledBooking = bookingService.GetBookingById(bookingId);
+
+Console.WriteLine($"Booking status: {cancelledBooking?.Status}");
+
+
+
+
+// Display loaded flights
+var loadedFlights = bookingService.GetAllFlights();
+
+Console.WriteLine($"Loaded flights: {loadedFlights.Count}");
+
+foreach (var flight in loadedFlights)
+{
+    Console.WriteLine($"\nFlight ID: {flight.Id}");
+    Console.WriteLine(
+        $"{flight.DepartureCountry} -> {flight.DestinationCountry}");
+
+    Console.WriteLine($"Date: {flight.DepartureDate:d}");
+
+    Console.WriteLine(
+        $"Economy: {flight.Economy.Price} | " +
+        $"Available seats: {flight.Economy.AvailableSeats}");
+
+    Console.WriteLine(
+        $"Business: {flight.Business.Price} | " +
+        $"Available seats: {flight.Business.AvailableSeats}");
+
+    Console.WriteLine(
+        $"First Class: {flight.FirstClass.Price} | " +
+        $"Available seats: {flight.FirstClass.AvailableSeats}");
 }
