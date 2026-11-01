@@ -8,12 +8,14 @@ public class FlightClassInventory
     public const decimal MinimumPrice = 0;
     public const int MinimumSeats = 0;
 
+    private const string MinimumMessage = "{0} must be at least {1}.";
+
     [Required]
-    [Range((double)MinimumPrice, double.MaxValue)]
+    [Range((double)MinimumPrice, double.MaxValue, ErrorMessage = MinimumMessage)]
     public decimal Price { get; }
 
     [Required]
-    [Range(MinimumSeats, int.MaxValue)]
+    [Range(MinimumSeats, int.MaxValue, ErrorMessage = MinimumMessage)]
     [Display(Name = "Seats")]
     public int TotalSeats { get; }
 
@@ -27,19 +29,8 @@ public class FlightClassInventory
         int totalSeats,
         int bookedSeats)
     {
-        if (price < MinimumPrice)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(price), price, $"Price must be at least {MinimumPrice}.");
-        }
-
-        if (totalSeats < MinimumSeats)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(totalSeats), totalSeats, $"Total seats must be at least {MinimumSeats}.");
-        }
-
-        if (bookedSeats < 0 || bookedSeats > totalSeats)
+        // Zero booked seats is always allowed here, so a negative totalSeats reaches [Range].
+        if (bookedSeats < 0 || (bookedSeats > 0 && bookedSeats > totalSeats))
         {
             throw new ArgumentOutOfRangeException(
                 nameof(bookedSeats),

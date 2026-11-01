@@ -8,22 +8,24 @@ public class Flight
 {
     public const string DepartureDateFormat = "yyyy-MM-dd";
 
+    private const string RequiredMessage = "{0} is required.";
+
     public Guid Id { get; private set; }
 
-    [Required]
+    [Required(ErrorMessage = RequiredMessage)]
     public string DepartureCountry { get; private set; }
 
-    [Required]
+    [Required(ErrorMessage = RequiredMessage)]
     public string DestinationCountry { get; private set; }
 
-    [Required]
+    [Required(ErrorMessage = RequiredMessage)]
     public string DepartureAirport { get; private set; }
 
-    [Required]
+    [Required(ErrorMessage = RequiredMessage)]
     public string ArrivalAirport { get; private set; }
 
-    [Required]
-    [FutureDate]
+    [Required(ErrorMessage = RequiredMessage)]
+    [FutureDate(ErrorMessage = "Departure date cannot be in the past.")]
     [DisplayFormat(DataFormatString = DepartureDateFormat)]
     public DateTime DepartureDate { get; private set; }
 
@@ -47,18 +49,6 @@ public class Flight
     {
         if (id == Guid.Empty)
             throw new ArgumentException("Flight ID is required.");
-
-        if (string.IsNullOrWhiteSpace(departureCountry))
-            throw new ArgumentException("Departure country is required.");
-
-        if (string.IsNullOrWhiteSpace(destinationCountry))
-            throw new ArgumentException("Destination country is required.");
-
-        if (string.IsNullOrWhiteSpace(departureAirport))
-            throw new ArgumentException("Departure airport is required.");
-
-        if (string.IsNullOrWhiteSpace(arrivalAirport))
-            throw new ArgumentException("Arrival airport is required.");
 
         ArgumentNullException.ThrowIfNull(economy);
         ArgumentNullException.ThrowIfNull(business);

@@ -1,5 +1,7 @@
-﻿using System.Globalization;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using AirportTicketBooking.Models;
+using Microsoft.VisualBasic.FileIO;
 
 namespace AirportTicketBooking.Services;
 
@@ -40,9 +42,10 @@ public class FlightCsvImportService
             return result;
         }
 
-        string[] headers = lines[0].Split(',');
+        string[]? headers = SplitLine(lines[0]);
 
-        if (!headers.SequenceEqual(
+        if (headers is null ||
+            !headers.SequenceEqual(
                 ExpectedHeaders,
                 StringComparer.OrdinalIgnoreCase))
         {
@@ -75,62 +78,101 @@ public class FlightCsvImportService
 
     private static Flight? ParseRow(string line, List<string> errors)
     {
-        string[] columns = line.Split(',');
+        string[]? columns = SplitLine(line);
+
+        if (columns is null)
+        {
+            errors.Add("Invalid CSV format. Check the double quotes.");
+            return null;
+        }
 
         if (columns.Length != ExpectedHeaders.Length)
         {
             errors.Add(
-                $"Expected {ExpectedHeaders.Length} columns, but found {columns.Length}.");
+                $"Expected {ExpectedHeaders.Length} columns, but found {columns.Length}. " +
+                "Put values containing commas in double quotes.");
             return null;
         }
 
-        string departureCountry = ReadRequiredText(columns[0], "DepartureCountry", errors);
-        string destinationCountry = ReadRequiredText(columns[1], "DestinationCountry", errors);
-        string departureAirport = ReadRequiredText(columns[2], "DepartureAirport", errors);
-        string arrivalAirport = ReadRequiredText(columns[3], "ArrivalAirport", errors);
-        DateTime departureDate = ReadDepartureDate(columns[4], errors);
-        decimal economyPrice = ReadPrice(columns[5], "EconomyPrice", errors);
-        int economySeats = ReadSeats(columns[6], "EconomySeats", errors);
-        decimal businessPrice = ReadPrice(columns[7], "BusinessPrice", errors);
-        int businessSeats = ReadSeats(columns[8], "BusinessSeats", errors);
-        decimal firstClassPrice = ReadPrice(columns[9], "FirstClassPrice", errors);
-        int firstClassSeats = ReadSeats(columns[10], "FirstClassSeats", errors);
+        var economy = new FlightClassInventory(
+            ReadPrice(columns[5], "EconomyPrice", errors),
+            ReadSeats(columns[6], "EconomySeats", errors));
 
-        if (errors.Count > 0)
-            return null;
+        var business = new FlightClassInventory(
+            ReadPrice(columns[7], "BusinessPrice", errors),
+            ReadSeats(columns[8], "BusinessSeats", errors));
 
-        return new Flight(
-            departureCountry,
-            destinationCountry,
-            departureAirport,
-            arrivalAirport,
-            departureDate,
-            new FlightClassInventory(economyPrice, economySeats),
-            new FlightClassInventory(businessPrice, businessSeats),
-            new FlightClassInventory(firstClassPrice, firstClassSeats));
+        var firstClass = new FlightClassInventory(
+            ReadPrice(columns[9], "FirstClassPrice", errors),
+            ReadSeats(columns[10], "FirstClassSeats", errors));
+
+        var flight = new Flight(
+            columns[0].Trim(),
+            columns[1].Trim(),
+            columns[2].Trim(),
+            columns[3].Trim(),
+            ReadDepartureDate(columns[4], errors),
+            economy,
+            business,
+            firstClass);
+
+        ValidateModel(flight, string.Empty, errors);
+        ValidateModel(economy, "Economy", errors);
+        ValidateModel(business, "Business", errors);
+        ValidateModel(firstClass, "FirstClass", errors);
+
+        return errors.Count == 0 ? flight : null;
     }
 
-    private static string ReadRequiredText(
-        string value,
-        string fieldName,
+    // Returns null when the line has invalid double quotes.
+    private static string[]? SplitLine(string line)
+    {
+        using var parser = new TextFieldParser(new StringReader(line));
+
+        parser.SetDelimiters(",");
+        parser.HasFieldsEnclosedInQuotes = true;
+        parser.TrimWhiteSpace = false;
+
+        try
+        {
+            return parser.ReadFields();
+        }
+        catch (MalformedLineException)
+        {
+            return null;
+        }
+    }
+
+    private static void ValidateModel(
+        object model,
+        string fieldPrefix,
         List<string> errors)
     {
-        string text = value.Trim();
+        var results = new List<ValidationResult>();
 
-        if (string.IsNullOrWhiteSpace(text))
-            errors.Add($"{fieldName} is required.");
+        Validator.TryValidateObject(
+            model,
+            new ValidationContext(model),
+            results,
+            validateAllProperties: true);
 
-        return text;
+        foreach (ValidationResult result in results)
+        {
+            errors.Add(fieldPrefix + result.ErrorMessage);
+        }
     }
 
+    // The Read methods below convert a cell from text. When a cell cannot be converted,
+    // they report the error and return a valid placeholder, so the Flight can still be
+    // built and the rest of the row can be validated. The row is rejected either way.
     private static DateTime ReadDepartureDate(string value, List<string> errors)
     {
         string text = value.Trim();
 
-        if (string.IsNullOrWhiteSpace(text))
+        if (text.Length == 0)
         {
             errors.Add("DepartureDate is required.");
-            return default;
+            return DateTime.Today;
         }
 
         if (!DateTime.TryParseExact(
@@ -141,11 +183,8 @@ public class FlightCsvImportService
                 out DateTime departureDate))
         {
             errors.Add($"Invalid departure date. Expected format: {DateFormat}.");
-            return default;
+            return DateTime.Today;
         }
-
-        if (departureDate.Date < DateTime.Today)
-            errors.Add("Departure date cannot be in the past.");
 
         return departureDate;
     }
@@ -157,10 +196,10 @@ public class FlightCsvImportService
     {
         string text = value.Trim();
 
-        if (string.IsNullOrWhiteSpace(text))
+        if (text.Length == 0)
         {
             errors.Add($"{fieldName} is required.");
-            return default;
+            return FlightClassInventory.MinimumPrice;
         }
 
         if (!decimal.TryParse(
@@ -170,11 +209,8 @@ public class FlightCsvImportService
                 out decimal price))
         {
             errors.Add($"{fieldName} must be a valid decimal.");
-            return default;
+            return FlightClassInventory.MinimumPrice;
         }
-
-        if (price < FlightClassInventory.MinimumPrice)
-            errors.Add($"{fieldName} must be at least {FlightClassInventory.MinimumPrice}.");
 
         return price;
     }
@@ -186,10 +222,10 @@ public class FlightCsvImportService
     {
         string text = value.Trim();
 
-        if (string.IsNullOrWhiteSpace(text))
+        if (text.Length == 0)
         {
             errors.Add($"{fieldName} is required.");
-            return default;
+            return FlightClassInventory.MinimumSeats;
         }
 
         if (!int.TryParse(
@@ -199,11 +235,8 @@ public class FlightCsvImportService
                 out int seats))
         {
             errors.Add($"{fieldName} must be a valid integer.");
-            return default;
+            return FlightClassInventory.MinimumSeats;
         }
-
-        if (seats < FlightClassInventory.MinimumSeats)
-            errors.Add($"{fieldName} must be at least {FlightClassInventory.MinimumSeats}.");
 
         return seats;
     }

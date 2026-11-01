@@ -149,6 +149,10 @@ public class ManagerMenu
         {
             Console.WriteLine(ex.Message);
         }
+        catch (IOException)
+        {
+            Console.WriteLine("The file is being used by another program. Close it and try again.");
+        }
     }
 
     private void ShowValidationDetails()
